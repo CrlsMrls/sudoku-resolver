@@ -1,0 +1,139 @@
+#board-placeholder {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+$square: 44px;
+
+.buttons {
+    display: grid;
+    justify-content: center;
+    grid-template-columns: 90px 90px 100px 130px;
+  
+  & button {
+    cursor: pointer;
+    border: 0.125rem solid black;
+    color: black;
+    background-color: whitesmoke;
+    font-size: 1.5rem;
+    line-height: 2.5;
+    padding: 0 20px;
+    font-size: 1rem;
+    text-align: center;
+
+    font-family: monospace;
+    text-shadow: rgba(0, 0, 0, 0.1) 2px 2px;
+
+    &:focus {
+        outline: 0.125rem whitesmoke;
+    }
+    &:active {
+        transform: translateY(0.125rem);
+    }
+    &:disabled {
+        color: grey;
+        background-color: lightgray;
+        border: 0.125rem solid grey;
+    }
+    & + button {
+        border-left: 0.125rem solid black;
+        margin-left: calc(0.125rem * -1);
+    }
+  }
+}
+
+.numbers {
+    display: grid;
+    grid-template-columns:  repeat(10, $square);
+    margin: 2rem;
+    justify-content: center;
+    align-items: stretch;
+    justify-items: stretch;
+    visibility: hidden;
+    &__pad {
+        border: 1px solid black;
+        height: $square;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: x-large;
+        cursor: pointer;
+        background-color: lightgrey;
+    }
+    &--visible {
+        visibility: visible;
+    }
+}
+
+.board {
+    display: grid;
+    // grid-template-columns: repeat(3, 1fr);
+    grid-template-columns:  repeat(9, $square);
+    margin: 2rem;
+    justify-content: center;
+    align-items: stretch;
+    justify-items: stretch;
+
+
+    &__pad {
+        border: 1px solid black;
+        height: $square;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: x-large;
+        font-weight: 100;
+        cursor: pointer;
+        background-color: lightgrey;
+
+        $border: 3px solid black;
+        $border-thicker: 4px solid black;
+       
+        &:nth-child(3n+1) { // each 3
+            border-left: $border;
+        }
+
+        &:nth-child(9n+1) { // the very left
+            border-left: $border-thicker;
+            
+        }
+        
+        &:nth-child(9n) { // the very right
+            border-right: $border-thicker;
+        }
+
+        &:nth-child(-n+9) { // very top
+            border-top: $border-thicker;
+        }
+
+        &:nth-child(n+28):nth-child(-n+36) {
+            border-top: $border;
+        }
+
+        &:nth-child(n+55):nth-child(-n+63) {
+            border-top: $border;
+        }
+
+        &:nth-last-child(-n+9) { // very bottom
+            border-bottom: $border-thicker;
+        }
+
+        &--error {
+            background-color: lightsalmon;
+        }
+
+        &--selected {
+            background-color: lightskyblue;
+        }
+
+        &--bold {
+            font-weight: bold;
+        }
+
+    }
+}
+
+
+
+  
+
