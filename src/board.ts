@@ -1,4 +1,8 @@
 
+import Worker from "worker-loader!./resolver.worker";
+
+import {cloneMatrix, hasDuplicatedNumbers} from './utils';
+
 export const BOARD_SIZE: number = 9;
 
 // no need to export this interface
@@ -17,8 +21,8 @@ export class Board {
     
     constructor(cloneBoard: Board = null) {
         if(cloneBoard != null) {
-            this.values = this.cloneMatrix(cloneBoard.values);
-            this.userInput = this.cloneMatrix(cloneBoard.userInput);
+            this.values = cloneMatrix(cloneBoard.values);
+            this.userInput = cloneMatrix(cloneBoard.userInput);
             this.numValues = cloneBoard.numValues;
         } else {
             this.values = new Array(BOARD_SIZE);
@@ -36,6 +40,15 @@ export class Board {
             col: new Array(BOARD_SIZE).fill(false), 
             row: new Array(BOARD_SIZE).fill(false), 
         }
+    }
+
+    static of(values: number[][], userInput:boolean[][]):Board {
+        const newBoard = new Board();
+        newBoard.values = cloneMatrix(values);
+        newBoard.userInput = cloneMatrix(userInput);
+        newBoard.updateInternalState();
+
+        return newBoard;
     }
 
     static exampleInstance():Board {
@@ -76,8 +89,7 @@ export class Board {
         const newBoard = new Board(this);
         newBoard.values[pad][pos] = value;
         newBoard.userInput[pad][pos] = (value != 0);
-        newBoard.errors = newBoard.getErrors();
-        newBoard.numValues = newBoard.calculateNumValues();
+        newBoard.updateInternalState();
 
         return newBoard;
     }
@@ -90,48 +102,27 @@ export class Board {
         return this.userInput[pad][pos];
     }
 
-    resolve(): Board {
-        const partial = new Board(this) ;
-        const solutions:Board[] = [];
-        Board.resolveIterate(solutions, partial, 0);
-        
-        return solutions[0];
-    }
-
-    private cloneMatrix(matrix:any[][]) : any[][] {
-        const clone:any[][] = new Array(matrix.length);
-        for (let i = 0; i < matrix.length; i++) {
-            clone[i] = [...matrix[i]];
-        }
-        return clone;
-    }
-
-    private static resolveIterate(solutions:Board[], partial:Board, num:number) {
-        if(solutions.length > 0) {
-            // TODO - move to service work until then one solution is good 
-            return;
-        }
-        if(num === 81) {
-            solutions.push(new Board(partial));
-            return;
-        }
-        const col = num%9;
-        const row = Math.floor(num/9);
-        const pad = Board.mapPad(col, row);
-        const pos = Board.mapPos(col, row);
-        
-        if(!partial.userInput[pad][pos]) {
-            for(let i  = 1; i <= BOARD_SIZE; i++) {
-                partial.values[pad][pos] = i;
-                const errors = partial.getErrors();
-                if (!errors.isError) {
-                    Board.resolveIterate(solutions, partial, num+1);
-                }
-                partial.values[pad][pos] = 0;
+    resolve(): Promise<Board> {
+        return new Promise<Board>( (resolve, rejectionFunc) => {
+            
+            const worker = new Worker();
+            worker.postMessage({
+                values: this.values,
+                userInput: this.userInput
+            });
+            worker.onmessage = (event:any) => {
+                const solution = new Board(this);
+                worker.terminate();
+                solution.values = event.data;
+                solution.updateInternalState();
+                resolve(solution);
             }
-        } else {
-            Board.resolveIterate(solutions, partial, num+1);
-        }                
+        });
+    }
+
+    private updateInternalState() {
+        this.numValues = this.calculateNumValues();
+        this.errors = this.getErrors();
     }
 
     private calculateNumValues():number {
@@ -153,7 +144,7 @@ export class Board {
         }
 
         for(let i = 0; i < BOARD_SIZE; i++) {
-            if(this.hasDuplicatedNumbers(this.values[i])) {
+            if(hasDuplicatedNumbers(this.values[i])) {
                 errors.isError = true;
                 errors.pad[i] = true;
             }
@@ -170,7 +161,7 @@ export class Board {
                 const pos = Board.mapPos(col, row);
                 colValues.push(this.getValue(pad, pos));
             }
-            if(this.hasDuplicatedNumbers(colValues)) {
+            if(hasDuplicatedNumbers(colValues)) {
                 errors.isError = true;
                 errors.col[col] = true;
             }
@@ -183,7 +174,7 @@ export class Board {
                 const pos = Board.mapPos(col, row);
                 rowValues.push(this.getValue(pad, pos));
             }
-            if(this.hasDuplicatedNumbers(rowValues)) {
+            if(hasDuplicatedNumbers(rowValues)) {
                 errors.isError = true;
                 errors.row[row] = true;
             }
@@ -192,8 +183,5 @@ export class Board {
         return errors;
     }
 
-    private hasDuplicatedNumbers(values: number[]): boolean {
-        const valuesWithoutZero = values.filter(e => e !== 0);
-        return new Set(valuesWithoutZero).size !== valuesWithoutZero.length;
-    }
+   
 }

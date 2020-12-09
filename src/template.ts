@@ -14,6 +14,8 @@ export class Template {
 
     private clickSubject = new Subject<Position>();
     public onPadClicked$: Observable<Position> = this.clickSubject;
+    private resolveSubject = new Subject<void>();
+    public onResolveClicked$: Observable<void> = this.resolveSubject;
     private boardElement: HTMLDivElement;
     private selectedPosition: Position;
     private storeReference: Store;
@@ -62,7 +64,7 @@ export class Template {
                 this.storeReference.add(new Board());
                 break;
             case 'resolve':
-                this.storeReference.add(this.storeReference.getCurrent().resolve());
+                this.resolveSubject.next();
                 break;
         }
         
