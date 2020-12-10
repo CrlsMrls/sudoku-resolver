@@ -1,10 +1,3 @@
-#board-placeholder {
-    max-width: 900px;
-    margin: 0 auto;
-}
-
-$square: 44px;
-
 .buttons {
     display: grid;
     justify-content: center;
@@ -18,7 +11,6 @@ $square: 44px;
     font-size: 1.5rem;
     line-height: 2.5;
     padding: 0 20px;
-    font-size: 1rem;
     text-align: center;
 
     font-family: monospace;
@@ -42,23 +34,29 @@ $square: 44px;
   }
 }
 
+@mixin number {
+    border: 1px solid black;
+    height: var(--square-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--square-font-size);
+    cursor: pointer;
+    background-color: lightgrey;
+}
+
 .numbers {
     display: grid;
-    grid-template-columns:  repeat(10, $square);
+    grid-template-columns:  repeat(10, var(--square-size));
     margin: 2rem;
     justify-content: center;
     align-items: stretch;
     justify-items: stretch;
     visibility: hidden;
+    transition: visibility 150ms;
     &__pad {
-        border: 1px solid black;
-        height: $square;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: x-large;
-        cursor: pointer;
-        background-color: lightgrey;
+        @include number;
+        font-weight: bold;
     }
     &--visible {
         visibility: visible;
@@ -67,25 +65,13 @@ $square: 44px;
 
 .board {
     display: grid;
-    // grid-template-columns: repeat(3, 1fr);
-    grid-template-columns:  repeat(9, $square);
-    margin: 2rem;
+    grid-template-columns:  repeat(9, var(--square-size));
     justify-content: center;
-    align-items: stretch;
-    justify-items: stretch;
-
-
+    
     &__pad {
-        border: 1px solid black;
-        height: $square;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: x-large;
+        @include number;
         font-weight: 100;
-        cursor: pointer;
-        background-color: lightgrey;
-
+ 
         $border: 3px solid black;
         $border-thicker: 4px solid black;
        
@@ -120,10 +106,12 @@ $square: 44px;
 
         &--error {
             background-color: lightsalmon;
+            transition: background-color 500ms;
         }
 
         &--selected {
             background-color: lightskyblue;
+            transition: background-color 500ms;
         }
 
         &--bold {
