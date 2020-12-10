@@ -1,7 +1,12 @@
+![workflow status badge](https://github.com/CrlsMrls/sudoku-resolver/workflows/CI/badge.svg)
+
+
+
 # Sudoku resolver
 
-This little web application resolve Sudoku problems. Insert values and click on 'Resolve' button.
+This little web application resolves Sudoku problems. Just insert the values and click on 'Resolve' button.
 
+## Screenshot
 ![Sudoku resolver Screenshot](./screenshot.png)
 
 ## Code structure
