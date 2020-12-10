@@ -15,7 +15,8 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  setup:
+  # This workflow contains a single job called "build"
+  build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     
@@ -29,27 +30,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '12.x'
-      - run: npm install -g yarn
-  install:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: yarn installs dependencies
-        run: yarn
+      - name: yarn install, build, and test
+        run: |
+          yarn
+          yarn build
+          yarn test
         
-  build:
-    needs: install
-    runs-on: ubuntu-latest
-    steps:
-      - name: yarn builds app
-        run: yarn build
-        
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: yarn run tests 
-        run: yarn test
-
     env:
       CI: true
