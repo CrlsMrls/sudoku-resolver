@@ -1,11 +1,12 @@
-![workflow status badge](https://github.com/CrlsMrls/sudoku-resolver/workflows/CI/badge.svg)
-
+![workflow status badge](https://github.com/CrlsMrls/sudoku-resolver/workflows/CI/badge.svg)  
+[![Netlify Status](https://api.netlify.com/api/v1/badges/1a49a666-ffbd-4c37-aaac-1b949b33cedc/deploy-status)](https://app.netlify.com/sites/sudoku-resolver/deploys)
 
 
 # Sudoku resolver
 
 This little web application resolves Sudoku problems. Just insert the values and click on 'Resolve' button.
 
+[Link to application](https://sudoku-resolver.netlify.app/)
 ## Screenshot
 ![Sudoku resolver Screenshot](./screenshot.png)
 
