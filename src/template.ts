@@ -24,29 +24,68 @@ export class Template {
         
         this.storeReference = store;
         
-        const parent = document.querySelector(parentTag);
+        this.boardElement = document.querySelector(parentTag);
         if (!parent) {
             throw new Error(`${parentTag} is not a valid tag`);
         }
-        this.boardElement = this.generateBoard();
-        parent.appendChild(this.boardElement);
-        parent.appendChild(this.generateNumPad());
-        parent.appendChild(this.generateButtons());
+        this.boardElement.appendChild(this.generateBoard());
+        this.boardElement.appendChild(this.generateNumPad());
+        this.boardElement.appendChild(this.generateButtons());
 
-        document.addEventListener('keydown', (event:KeyboardEvent) => {
-            if('1234567890'.includes(event.key) && this.selectedPosition != null) {
-                this.numPadClicked(+event.key);
-            }
-        });
-
+        // subscribe to store changes
         store.onBoardChange$.subscribe((board:Board) => this.drawBoard(board));
         store.hasNext$.subscribe((hasNext: boolean) => this.disableButton('next', !hasNext));
         store.hasBack$.subscribe((hasBack: boolean) => this.disableButton('back', !hasBack));
 
+        // add listener to keyboard
+        document.addEventListener('keydown', (event:KeyboardEvent) => {
+            if (this.selectedPosition != null) {
+                if('1234567890'.includes(event.key)) {
+                    this.numPadClicked(+event.key);
+                } else if(['Delete', 'Backspace', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
+                    switch (event.key) {
+                        case 'ArrowRight':
+                            this.moveCursor(0, 1);
+                            break;
+                        case 'ArrowLeft':
+                            this.moveCursor(0, -1);
+                            break;
+                        case 'ArrowUp':
+                            this.moveCursor(-1, 0);
+                            break;
+                        case 'ArrowDown':
+                            this.moveCursor(1, 0);
+                            break;
+                        case 'Delete':
+                        case 'Backspace':
+                            this.numPadClicked(0);
+                    }
+                }
+            }
+        });
+        
+    } 
+
+    private moveCursor(vertical:number, horizontal:number) {
+        let col = this.selectedPosition.col;
+        let row = this.selectedPosition.row;
+
+        if (row+vertical >= 0 && row+vertical <= 8) {
+            row += vertical;
+        }
+        if (col+horizontal >= 0 && col+horizontal <= 8 ) {
+            col += horizontal;
+        }
+        this.boardPadClicked({
+            pad: Board.mapPad(col, row),
+            pos: Board.mapPos(col, row),
+            col,
+            row,
+        });
     }
 
     private disableButton(buttonId:string, disable: boolean) {
-        const button:HTMLButtonElement = this.boardElement.parentElement.querySelector(`.buttons__${buttonId}`);
+        const button:HTMLButtonElement = this.boardElement.querySelector(`.buttons__${buttonId}`);
         if (button != null ) {
             button.disabled = disable;
         }
@@ -67,12 +106,12 @@ export class Template {
                 this.resolveSubject.next();
                 break;
         }
-        
+        this.deselectPad();        
     }
 
     private generateBoard():HTMLDivElement {
-        const boardElement: HTMLDivElement = document.createElement('div');
-        boardElement.classList.add('board');
+        const boardPad: HTMLDivElement = document.createElement('div');
+        boardPad.classList.add('board');
 
         for (let row = 0; row < 9; row++) {
             for (let col = 0; col < 9; col++) {
@@ -89,10 +128,10 @@ export class Template {
                     row,
                 }
                 pad.addEventListener('click', () => this.boardPadClicked(position));
-                boardElement.appendChild(pad);
+                boardPad.appendChild(pad);
             }
         }
-        return boardElement;
+        return boardPad;
     }
 
     private generateNumPad():HTMLDivElement {
@@ -133,22 +172,25 @@ export class Template {
     private numPadClicked(newNumber:number): void {
         this.selectedPosition.num = newNumber;
         this.clickSubject.next(this.selectedPosition);
+    }
+
+    private deselectPad() {
         this.selectedPosition = null;
         this.boardElement.querySelectorAll('.board__pad').forEach((pad: Element) => pad.classList.remove('board__pad--selected'));
-        this.boardElement.parentElement.querySelector('.numbers').classList.remove('numbers--visible');
+        this.boardElement.querySelector('.numbers').classList.remove('numbers--visible');
     }
 
     private boardPadClicked(position:Position): void {
         // show numberBoard
-        this.boardElement.parentElement.querySelector('.numbers').classList.add('numbers--visible');
+        this.boardElement.querySelector('.numbers').classList.add('numbers--visible');
         // deselect all and select the clicked position
         this.boardElement.querySelectorAll('.board__pad').forEach((pad: Element) => pad.classList.remove('board__pad--selected'));
         this.boardElement.querySelector(`.pos-${position.pad}-${position.pos}`).classList.add('board__pad--selected')
         this.selectedPosition = position;
     }
 
-    drawBoard(board: Board) {
-        // un bold all numbers
+    private drawBoard(board: Board) {
+        // un-bold all numbers
         this.boardElement.querySelectorAll('.board__pad').forEach((pad: Element) => pad.classList.remove('board__pad--bold'));
         for (let col = 0; col < 9; col++) {
             for (let row = 0; row < 9; row++) {
